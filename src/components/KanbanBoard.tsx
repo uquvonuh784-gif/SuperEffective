@@ -60,13 +60,29 @@ export default function KanbanBoard({ workspaceId, nodes, onNotesChange, onSelec
         onNotesChange(nodes.map(n => n.id === task.id ? { ...n, status: newStatus } : n));
     };
 
+    const handleDrop = (e: React.DragEvent, status: string) => {
+        e.preventDefault();
+        const taskId = e.dataTransfer.getData('taskId');
+        if (!taskId) return;
+
+        const task = tasks.find(t => t.id === taskId);
+        if (task && task.status !== status) {
+            handleUpdateStatus(task, status);
+        }
+    };
+
     return (
         <div className="flex h-full w-full gap-6 overflow-x-auto pb-4">
             {COLUMNS.map(col => {
                 const colTasks = tasks.filter(t => t.status === col.id);
 
                 return (
-                    <div key={col.id} className="flex-1 min-w-[300px] flex flex-col gap-4">
+                    <div
+                        key={col.id}
+                        className="flex-1 min-w-[300px] flex flex-col gap-4"
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={(e) => handleDrop(e, col.id)}
+                    >
                         <div className="flex items-center justify-between mb-2">
                             <h3 className="font-semibold text-foreground/80 flex items-center gap-2">
                                 {col.title}
@@ -87,7 +103,9 @@ export default function KanbanBoard({ workspaceId, nodes, onNotesChange, onSelec
                             {colTasks.map(task => (
                                 <div
                                     key={task.id}
-                                    className={`glass-panel p-4 cursor-pointer hover:border-primary/50 transition-all border border-white/5 shadow-lg group ${col.id === 'in_progress' ? 'bg-primary/5' : ''
+                                    draggable
+                                    onDragStart={(e) => e.dataTransfer.setData('taskId', task.id)}
+                                    className={`glass-panel p-4 cursor-grab active:cursor-grabbing hover:border-primary/50 transition-all border border-white/5 shadow-lg group ${col.id === 'in_progress' ? 'bg-primary/5' : ''
                                         }`}
                                     onClick={() => onSelectTask(task)}
                                 >
