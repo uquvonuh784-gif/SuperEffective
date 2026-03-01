@@ -46,7 +46,7 @@ describe('Dashboard/Editor Page (Home)', () => {
     it('renders the main Editor Header', async () => {
         render(<Home />)
         await waitForLoading()
-        expect(screen.getByText('Разработка нового интерфейса')).toBeInTheDocument()
+        expect(screen.getByDisplayValue('Разработка нового интерфейса')).toBeInTheDocument()
         expect(screen.getByText('In Progress')).toBeInTheDocument()
     })
 

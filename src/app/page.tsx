@@ -75,9 +75,36 @@ export default function Home() {
                   {activeNode.status === 'in_progress' ? 'In Progress' : activeNode.status}
                 </p>
               )}
-              <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-                {activeNode?.title || "Без названия"}
-              </h1>
+              <input
+                type="text"
+                value={activeNode?.title || ""}
+                onChange={(e) => {
+                  if (!activeNode) return;
+                  const newTitle = e.target.value;
+                  setActiveNode({ ...activeNode, title: newTitle });
+                  // Мгновенно обновляем сайдбар
+                  setNotes(notes.map(n => n.id === activeNode.id ? { ...n, title: newTitle } : n));
+                }}
+                onBlur={async (e) => {
+                  if (!activeNode) return;
+                  const newTitle = e.target.value.trim() || 'Без названия';
+
+                  // Синхронизируем с Supabase
+                  const { error } = await supabase
+                    .from('nodes')
+                    .update({ title: newTitle, updated_at: new Date().toISOString() })
+                    .eq('id', activeNode.id);
+
+                  if (error) console.error("Ошибка при сохранении названия:", error);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.currentTarget.blur();
+                  }
+                }}
+                placeholder="Без названия"
+                className="text-4xl font-bold bg-transparent border-none outline-none w-full text-foreground placeholder:text-foreground/30 focus:ring-0 p-0 m-0"
+              />
             </div>
             {/* Кнопка выхода для тестов */}
             <button
