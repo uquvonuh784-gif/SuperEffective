@@ -29,9 +29,14 @@ ${tasksSummary || "Нет текущих задач."}`;
             systemInstruction: systemInstruction,
         });
 
+        // Исключаем начальные сообщения от 'model', так как Gemini требует начинать с 'user'
+        const rawHistory = messages.slice(0, -1);
+        const firstUserIndex = rawHistory.findIndex((m: { role: string }) => m.role === 'user');
+        const validHistory = firstUserIndex >= 0 ? rawHistory.slice(firstUserIndex) : [];
+
         // Создаем чат историю
         const chat = model.startChat({
-            history: messages.slice(0, -1).map((m: { role: string, content: string }) => ({
+            history: validHistory.map((m: { role: string, content: string }) => ({
                 role: m.role === 'user' ? 'user' : 'model',
                 parts: [{ text: m.content }]
             }))
