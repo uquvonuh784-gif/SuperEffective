@@ -13,7 +13,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   // Подключаем наш умный хук Воркспейса
-  const { activeNode, loadingWorkspace } = useWorkspace(session);
+  const { workspace, activeNode, setActiveNode, notes, setNotes, loadingWorkspace } = useWorkspace(session);
 
   // Проверка сессии при загрузке
   useEffect(() => {
@@ -52,7 +52,13 @@ export default function Home() {
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       {/* Боковая панель (Левая часть) */}
-      <Sidebar />
+      <Sidebar
+        workspaceId={workspace?.id}
+        notes={notes}
+        activeNode={activeNode}
+        onSelectNode={setActiveNode}
+        onNotesChange={setNotes}
+      />
 
       {/* Основной контент (Правая часть) */}
       <main className="flex-1 flex flex-col relative overflow-hidden">
@@ -89,6 +95,7 @@ export default function Home() {
             <div className="glass-panel p-8 shadow-2xl flex-col flex flex-[7] border-t border-l border-white/10 relative overflow-hidden">
               {activeNode ? (
                 <Editor
+                  key={activeNode.id}
                   nodeId={activeNode.id}
                   initialContent={activeNode.content?.html}
                 />

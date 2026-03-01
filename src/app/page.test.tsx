@@ -25,6 +25,7 @@ vi.mock('@/hooks/useWorkspace', () => ({
             reward_points: 150,
             content: { html: '<p>test</p>' }
         },
+        notes: [],
         loadingWorkspace: false
     })
 }));

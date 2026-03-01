@@ -25,6 +25,7 @@ export interface NodeItem {
 export function useWorkspace(session: Session | null) {
     const [workspace, setWorkspace] = useState<Workspace | null>(null);
     const [activeNode, setActiveNode] = useState<NodeItem | null>(null);
+    const [notes, setNotes] = useState<NodeItem[]>([]);
     const [loadingWorkspace, setLoadingWorkspace] = useState(false);
 
     useEffect(() => {
@@ -81,12 +82,12 @@ export function useWorkspace(session: Session | null) {
                     .from('nodes')
                     .select('*')
                     .eq('workspace_id', currentWorkspace.id)
-                    .order('updated_at', { ascending: false })
-                    .limit(1);
+                    .order('updated_at', { ascending: false });
 
                 if (nodesError) throw nodesError;
 
                 if (nodes && nodes.length > 0) {
+                    setNotes(nodes);
                     setActiveNode(nodes[0]);
                 } else {
                     // Создаем дефолтную заметку
@@ -105,6 +106,7 @@ export function useWorkspace(session: Session | null) {
                         .single();
 
                     if (nodeInsertError) throw nodeInsertError;
+                    setNotes([newNode]);
                     setActiveNode(newNode);
                 }
 
@@ -118,5 +120,5 @@ export function useWorkspace(session: Session | null) {
         initWorkspace();
     }, [session]);
 
-    return { workspace, activeNode, loadingWorkspace };
+    return { workspace, activeNode, setActiveNode, notes, setNotes, loadingWorkspace };
 }
