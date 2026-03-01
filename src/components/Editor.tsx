@@ -1,10 +1,43 @@
 "use client";
 
+import { useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { Bold, Italic, Strikethrough, Heading1, Heading2, List, ListOrdered, Quote, Code } from "lucide-react";
+import { Bold, Italic, Strikethrough, Heading1, Heading2, List, ListOrdered, Quote, Code, CheckCircle2, Loader2 } from "lucide-react";
+import debounce from "lodash.debounce";
+import { supabase } from "@/lib/supabase/client";
 
-export default function Editor() {
+interface EditorProps {
+    nodeId?: string;
+    initialContent?: string;
+}
+
+export default function Editor({ nodeId, initialContent }: EditorProps) {
+    const [isSaving, setIsSaving] = useState(false);
+    const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
+    const debouncedSave = debounce(async (html: string) => {
+        if (!nodeId) return; // Не сохраняем, если не знаем идентификатор заметки
+
+        setIsSaving(true);
+        try {
+            const { error } = await supabase
+                .from('nodes')
+                .update({
+                    content: { html },
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', nodeId);
+
+            if (error) throw error;
+            setLastSaved(new Date());
+        } catch (error) {
+            console.error("Ошибка при сохранении в Supabase:", error);
+        } finally {
+            setIsSaving(false);
+        }
+    }, 3000);
+
     const editor = useEditor({
         immediatelyRender: false,
         extensions: [
@@ -14,14 +47,9 @@ export default function Editor() {
                 },
             }),
         ],
-        content: `
+        content: initialContent || `
       <h2>Прекрасный новый редактор! ✨</h2>
       <p>Это твое гибридное рабочее пространство. Начни писать свой гениальный план здесь...</p>
-      <ul>
-        <li>Поддерживаются списки</li>
-        <li><strong>Жирный текст</strong> и <em>Курсив</em></li>
-        <li>И даже <code>встроенный код</code></li>
-      </ul>
     `,
         editorProps: {
             attributes: {
@@ -38,6 +66,9 @@ export default function Editor() {
                     "[&_code]:bg-black/30 [&_code]:text-primary [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded text-lg",
             },
         },
+        onUpdate: ({ editor }) => {
+            debouncedSave(editor.getHTML());
+        },
     });
 
     if (!editor) {
@@ -46,68 +77,83 @@ export default function Editor() {
 
     return (
         <div className="flex flex-col h-full">
-            {/* Тулбар (Панель инструментов) */}
-            <div className="flex items-center gap-1 p-2 mb-4 rounded-xl glass-panel bg-white/5 border border-white/10 sticky top-0 z-10 w-fit">
-                <ToolbarButton
-                    active={editor.isActive('bold')}
-                    onClick={() => editor.chain().focus().toggleBold().run()}
-                    icon={<Bold size={18} />}
-                    title="Жирный"
-                />
-                <ToolbarButton
-                    active={editor.isActive('italic')}
-                    onClick={() => editor.chain().focus().toggleItalic().run()}
-                    icon={<Italic size={18} />}
-                    title="Курсив"
-                />
-                <ToolbarButton
-                    active={editor.isActive('strike')}
-                    onClick={() => editor.chain().focus().toggleStrike().run()}
-                    icon={<Strikethrough size={18} />}
-                    title="Зачеркнутый"
-                />
+            {/* Тулбар (Панель инструментов) и Статус сохранения */}
+            <div className="flex items-center justify-between mb-4 sticky top-0 z-10 w-full">
+                <div className="flex items-center gap-1 p-2 rounded-xl glass-panel bg-white/5 border border-white/10 w-fit">
+                    <ToolbarButton
+                        active={editor.isActive('bold')}
+                        onClick={() => editor.chain().focus().toggleBold().run()}
+                        icon={<Bold size={18} />}
+                        title="Жирный"
+                    />
+                    <ToolbarButton
+                        active={editor.isActive('italic')}
+                        onClick={() => editor.chain().focus().toggleItalic().run()}
+                        icon={<Italic size={18} />}
+                        title="Курсив"
+                    />
+                    <ToolbarButton
+                        active={editor.isActive('strike')}
+                        onClick={() => editor.chain().focus().toggleStrike().run()}
+                        icon={<Strikethrough size={18} />}
+                        title="Зачеркнутый"
+                    />
 
-                <div className="w-px h-6 bg-white/10 mx-1"></div>
+                    <div className="w-px h-6 bg-white/10 mx-1"></div>
 
-                <ToolbarButton
-                    active={editor.isActive('heading', { level: 1 })}
-                    onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-                    icon={<Heading1 size={18} />}
-                    title="Заголовок 1"
-                />
-                <ToolbarButton
-                    active={editor.isActive('heading', { level: 2 })}
-                    onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-                    icon={<Heading2 size={18} />}
-                    title="Заголовок 2"
-                />
+                    <ToolbarButton
+                        active={editor.isActive('heading', { level: 1 })}
+                        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                        icon={<Heading1 size={18} />}
+                        title="Заголовок 1"
+                    />
+                    <ToolbarButton
+                        active={editor.isActive('heading', { level: 2 })}
+                        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                        icon={<Heading2 size={18} />}
+                        title="Заголовок 2"
+                    />
 
-                <div className="w-px h-6 bg-white/10 mx-1"></div>
+                    <div className="w-px h-6 bg-white/10 mx-1"></div>
 
-                <ToolbarButton
-                    active={editor.isActive('bulletList')}
-                    onClick={() => editor.chain().focus().toggleBulletList().run()}
-                    icon={<List size={18} />}
-                    title="Маркированный список"
-                />
-                <ToolbarButton
-                    active={editor.isActive('orderedList')}
-                    onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                    icon={<ListOrdered size={18} />}
-                    title="Нумерованный список"
-                />
-                <ToolbarButton
-                    active={editor.isActive('blockquote')}
-                    onClick={() => editor.chain().focus().toggleBlockquote().run()}
-                    icon={<Quote size={18} />}
-                    title="Цитата"
-                />
-                <ToolbarButton
-                    active={editor.isActive('code')}
-                    onClick={() => editor.chain().focus().toggleCode().run()}
-                    icon={<Code size={18} />}
-                    title="Код"
-                />
+                    <ToolbarButton
+                        active={editor.isActive('bulletList')}
+                        onClick={() => editor.chain().focus().toggleBulletList().run()}
+                        icon={<List size={18} />}
+                        title="Маркированный список"
+                    />
+                    <ToolbarButton
+                        active={editor.isActive('orderedList')}
+                        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                        icon={<ListOrdered size={18} />}
+                        title="Нумерованный список"
+                    />
+                    <ToolbarButton
+                        active={editor.isActive('blockquote')}
+                        onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                        icon={<Quote size={18} />}
+                        title="Цитата"
+                    />
+                    <ToolbarButton
+                        active={editor.isActive('code')}
+                        onClick={() => editor.chain().focus().toggleCode().run()}
+                        icon={<Code size={18} />}
+                        title="Код"
+                    />
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                    {isSaving ? (
+                        <span className="flex items-center gap-1.5 text-foreground/50">
+                            <Loader2 size={14} className="animate-spin" />
+                            Сохранение...
+                        </span>
+                    ) : lastSaved ? (
+                        <span className="flex items-center gap-1.5 text-primary/80">
+                            <CheckCircle2 size={14} />
+                            Сохранено {lastSaved.toLocaleTimeString()}
+                        </span>
+                    ) : null}
+                </div>
             </div>
 
             {/* Сама зона редактора */}
@@ -127,7 +173,7 @@ function ToolbarButton({
     icon: React.ReactNode;
     onClick: () => void;
     active: boolean;
-    title: string
+    title: string;
 }) {
     return (
         <button
