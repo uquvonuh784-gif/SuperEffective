@@ -184,28 +184,28 @@ export default function KanbanBoard({ workspaceId, nodes, onNotesChange, onSelec
                                                 </button>
                                             </div>
 
-                                            <div className="flex items-center justify-between mt-4">
+                                            {task.tags && task.tags.length > 0 && (
+                                                <div className="flex flex-wrap gap-1.5 mt-2 mb-3">
+                                                    {task.tags.map(tag => (
+                                                        <span
+                                                            key={tag}
+                                                            className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded border border-primary/20 truncate max-w-[120px]"
+                                                            title={tag}
+                                                        >
+                                                            {tag}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            <div className="flex items-center justify-between mt-auto pt-4">
                                                 <div className="flex gap-2 items-center">
                                                     <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border capitalize ${getPriorityColor(task.priority)}`}>
                                                         {task.priority || 'medium'}
                                                     </span>
-                                                    <span className="text-xs font-semibold text-primary px-1.5 py-0.5 bg-primary/10 rounded border border-primary/20">
+                                                    <span className="text-[10px] font-semibold text-primary px-1.5 py-0.5 bg-primary/10 rounded border border-primary/20">
                                                         +{task.reward_points || 0} RP
                                                     </span>
-                                                </div>
-
-                                                <div className="flex gap-1" onClick={e => e.stopPropagation()}>
-                                                    <select
-                                                        className="bg-black/40 text-xs border border-white/10 rounded px-1.5 py-1 text-foreground/70 outline-none"
-                                                        value={task.status}
-                                                        onChange={(e) => handleUpdateStatus(task, e.target.value)}
-                                                    >
-                                                        <option value="todo">To Do</option>
-                                                        <option value="in_progress">In Progress</option>
-                                                        <option value="done">Done</option>
-                                                        <option value="paused">Пауза</option>
-                                                        <option value="archived">Архив</option>
-                                                    </select>
                                                 </div>
                                             </div>
                                         </div>
