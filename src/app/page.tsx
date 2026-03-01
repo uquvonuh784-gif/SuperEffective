@@ -137,7 +137,7 @@ export default function Home() {
                   />
                 </div>
                 <div className="w-[380px] flex-shrink-0 h-full">
-                  <AIChat nodes={notes} />
+                  <AIChat nodes={notes} activeNode={activeNode} />
                 </div>
               </div>
             </div>
@@ -226,8 +226,8 @@ export default function Home() {
                     <button
                       onClick={() => setActiveRightTab('details')}
                       className={`flex-1 text-sm font-medium py-2 px-3 rounded-md transition-all ${activeRightTab === 'details'
-                          ? 'bg-primary/20 text-primary shadow-sm border border-primary/20'
-                          : 'text-foreground/60 hover:text-foreground hover:bg-white/5'
+                        ? 'bg-primary/20 text-primary shadow-sm border border-primary/20'
+                        : 'text-foreground/60 hover:text-foreground hover:bg-white/5'
                         }`}
                     >
                       📑 Детали
@@ -235,8 +235,8 @@ export default function Home() {
                     <button
                       onClick={() => setActiveRightTab('ai')}
                       className={`flex-1 text-sm font-medium py-2 px-3 rounded-md transition-all ${activeRightTab === 'ai'
-                          ? 'bg-primary/20 text-primary shadow-sm border border-primary/20'
-                          : 'text-foreground/60 hover:text-foreground hover:bg-white/5'
+                        ? 'bg-primary/20 text-primary shadow-sm border border-primary/20'
+                        : 'text-foreground/60 hover:text-foreground hover:bg-white/5'
                         }`}
                     >
                       🤖 AI Копилот
@@ -368,7 +368,7 @@ export default function Home() {
                     </>
                   ) : (
                     <div className="flex-1 min-h-[400px]">
-                      <AIChat nodes={notes} />
+                      <AIChat nodes={notes} activeNode={activeNode} />
                     </div>
                   )}
 

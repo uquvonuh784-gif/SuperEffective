@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
     try {
-        const { messages, contextData } = await req.json();
+        const { messages, contextData, activeNode } = await req.json();
 
         const apiKey = process.env.GROQ_API_KEY;
         if (!apiKey) {
@@ -18,9 +18,19 @@ export async function POST(req: Request) {
             .map((t: { title?: string, status?: string, due_date?: string, priority?: string }) => `Задача: ${t.title || 'Без названия'} | Статус: ${t.status} | Дедлайн: ${t.due_date ? new Date(t.due_date).toLocaleDateString() : 'Нет'} | Приоритет: ${t.priority}`)
             .join("\n");
 
+        let activeNodeContext = "";
+        if (activeNode) {
+            // Если открыта конкретная заметка (или задача)
+            const typeNode = activeNode.is_task ? "задачу" : "заметку";
+            const contentCleanText = activeNode.content?.html?.replace(/<[^>]*>?/gm, '') || "Пусто";
+            activeNodeContext = `\nОЧЕНЬ ВАЖНО: Сейчас пользователь смотрит на ${typeNode} "${activeNode.title || 'Без названия'}".
+Она содержит следующий текст (HTML/Markdown был очищен): "${contentCleanText}".
+Если пользователь задает вопрос (например "что тут?", "напиши план" или "декомпозируй"), он имеет в виду ИМЕННО эту открытую ${typeNode}.\n`;
+        }
+
         const systemInstruction = `Ты дружелюбный и суперопытный AI-ассистент в приложении Super Effective (сочетание Канбана и Заметок с элементами геймификации).
-Твоя задача — помогать пользователю декомпозировать задачи, управлять временем и давать советы. Коротко отвечай по-русски. Размечай текст Markdown-ом.
-Текущие задачи пользователя:
+Твоя задача — помогать пользователю декомпозировать задачи, управлять временем и давать советы. Коротко отвечай по-русски. Размечай текст Markdown-ом.${activeNodeContext}
+Текущие глобальные задачи пользователя (в Канбане):
 ${tasksSummary || "Нет текущих задач."}`;
 
         // Gemini uses 'model', but Groq (OpenAI format) uses 'assistant'

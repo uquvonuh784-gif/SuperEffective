@@ -11,9 +11,10 @@ interface Message {
 
 interface AIChatProps {
     nodes: NodeItem[];
+    activeNode?: NodeItem | null;
 }
 
-export default function AIChat({ nodes }: AIChatProps) {
+export default function AIChat({ nodes, activeNode }: AIChatProps) {
     const [messages, setMessages] = useState<Message[]>([
         { role: 'model', content: 'Привет! Я твой AI-помощник Super Effective. Я уже проанализировал твои задачи и готов помочь с декомпозицией или планированием. Что будем делать?' }
     ]);
@@ -42,7 +43,8 @@ export default function AIChat({ nodes }: AIChatProps) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     messages: newMessages,
-                    contextData: nodes
+                    contextData: nodes,
+                    activeNode: activeNode
                 })
             });
 
@@ -75,7 +77,7 @@ export default function AIChat({ nodes }: AIChatProps) {
                         <Cpu size={18} />
                     </div>
                     <div>
-                        <h3 className="font-semibold text-foreground/90 text-sm">AI Копилот (Gemini)</h3>
+                        <h3 className="font-semibold text-foreground/90 text-sm">AI Копилот (Llama 3)</h3>
                         <p className="text-[10px] text-foreground/50 uppercase tracking-widest mt-0.5">В сети</p>
                     </div>
                 </div>
