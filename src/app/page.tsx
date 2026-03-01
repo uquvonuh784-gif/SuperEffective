@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase/client";
 import Sidebar from "@/components/Sidebar";
 import Editor from "@/components/Editor";
 import Auth from "@/components/Auth";
-import { useWorkspace } from "@/hooks/useWorkspace";
+import { useWorkspace, NodeItem } from "@/hooks/useWorkspace";
 
 import KanbanBoard from "@/components/KanbanBoard";
 
@@ -17,6 +17,22 @@ export default function Home() {
 
   // Подключаем наш умный хук Воркспейса
   const { workspace, activeNode, setActiveNode, notes, setNotes, loadingWorkspace } = useWorkspace(session);
+
+  const updateNodeField = async (field: keyof NodeItem, value: string | boolean | number | null) => {
+    if (!activeNode) return;
+
+    // Optimistic UI update
+    const updatedNode = { ...activeNode, [field]: value };
+    setActiveNode(updatedNode);
+    setNotes(notes.map(n => n.id === activeNode.id ? updatedNode : n));
+
+    const { error } = await supabase
+      .from('nodes')
+      .update({ [field]: value, updated_at: new Date().toISOString() })
+      .eq('id', activeNode.id);
+
+    if (error) console.error(`Ошибка при обновлении ${field}:`, error);
+  };
 
   // Проверка сессии при загрузке
   useEffect(() => {
@@ -191,26 +207,55 @@ export default function Home() {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <span className="text-xs text-foreground/40 font-medium uppercase tracking-wider">Дедлайн</span>
-                      <span className="text-sm text-foreground/80 flex items-center gap-2">
-                        {activeNode?.due_date ? new Date(activeNode.due_date).toLocaleDateString() : 'Не установлен'}
-                      </span>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <span className="text-xs text-foreground/40 font-medium uppercase tracking-wider">Приоритет</span>
-                      <span className="text-sm flex items-center gap-1.5 px-2 py-1 bg-red-500/10 text-red-400 w-fit rounded-md border border-red-500/20 capitalize">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span> {activeNode?.priority || 'Обычный'}
-                      </span>
+                      <span className="text-xs text-foreground/40 font-medium uppercase tracking-wider">Тип</span>
+                      <button
+                        onClick={() => updateNodeField('is_task', !activeNode?.is_task)}
+                        className="text-sm text-left flex items-center justify-between px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-md transition-colors w-full border border-white/5"
+                      >
+                        {activeNode?.is_task ? '🎯 Задача' : '📝 Заметка'}
+                        <span className="text-xs text-foreground/40">Изменить</span>
+                      </button>
                     </div>
 
                     {activeNode?.is_task && (
-                      <div className="flex flex-col gap-1">
-                        <span className="text-xs text-foreground/40 font-medium uppercase tracking-wider">Награда</span>
-                        <span className="text-sm font-semibold text-primary px-2 py-1 bg-primary/10 w-fit rounded-md border border-primary/20">
-                          +{activeNode?.reward_points || 0} RP
-                        </span>
-                      </div>
+                      <>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs text-foreground/40 font-medium uppercase tracking-wider">Дедлайн</span>
+                          <input
+                            type="date"
+                            value={activeNode?.due_date ? new Date(activeNode.due_date).toISOString().split('T')[0] : ''}
+                            onChange={(e) => updateNodeField('due_date', e.target.value ? new Date(e.target.value).toISOString() : null)}
+                            className="text-sm bg-black/40 border border-white/10 rounded-md px-2 py-1 text-foreground/80 outline-none focus:border-primary/50 w-full"
+                          />
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs text-foreground/40 font-medium uppercase tracking-wider">Приоритет</span>
+                          <select
+                            value={activeNode?.priority || 'medium'}
+                            onChange={(e) => updateNodeField('priority', e.target.value)}
+                            className="text-sm bg-black/40 border border-white/10 rounded-md px-2 py-1 text-foreground/80 outline-none focus:border-primary/50 capitalize w-full"
+                          >
+                            <option value="low">Low (Низкий)</option>
+                            <option value="medium">Medium (Средний)</option>
+                            <option value="high">High (Высокий)</option>
+                          </select>
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs text-foreground/40 font-medium uppercase tracking-wider">Награда (RP)</span>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              min="0"
+                              value={activeNode?.reward_points || 0}
+                              onChange={(e) => updateNodeField('reward_points', parseInt(e.target.value) || 0)}
+                              className="text-sm bg-black/40 border border-white/10 rounded-md px-2 py-1 text-primary font-semibold outline-none focus:border-primary/50 w-full"
+                            />
+                            <span className="text-xs font-semibold text-primary">RP</span>
+                          </div>
+                        </div>
+                      </>
                     )}
                   </div>
 

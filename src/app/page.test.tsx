@@ -53,7 +53,7 @@ describe('Dashboard/Editor Page (Home)', () => {
     it('renders the metadata block and action buttons', async () => {
         render(<Home />)
         await waitForLoading()
-        expect(screen.getByText('+150 RP')).toBeInTheDocument()
+        expect(screen.getByDisplayValue('150')).toBeInTheDocument()
         expect(screen.getByText('Детали задачи')).toBeInTheDocument()
         expect(screen.getByText(/В Google Календарь/i)).toBeInTheDocument()
     })
