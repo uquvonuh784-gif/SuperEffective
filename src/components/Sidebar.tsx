@@ -21,7 +21,7 @@ export default function Sidebar({ workspaceId, notes = [], activeNode, onSelectN
                 title: 'Новая заметка',
                 is_task: false,
                 status: 'todo',
-                priority: 'normal',
+                priority: 'medium',
                 reward_points: 0,
                 content: { html: `<h2>Новая заметка</h2><p>Начните писать...</p>` }
             }])
