@@ -40,7 +40,7 @@ ${tasksSummary || "Нет текущих задач."}`;
                 { role: "system", content: systemInstruction },
                 ...conversationHistory
             ],
-            model: "llama3-70b-8192", // Use a fast and smart model that is free on Groq
+            model: "llama-3.3-70b-versatile", // Use a fast and smart model that is free on Groq
         });
 
         const responseText = chatCompletion.choices[0]?.message?.content || "";
