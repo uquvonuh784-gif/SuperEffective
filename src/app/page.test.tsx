@@ -2,25 +2,25 @@ import { render, screen } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
 import Home from './page'
 
-describe('Home Page', () => {
-    it('renders the main heading', () => {
+describe('Dashboard/Editor Page (Home)', () => {
+    it('renders the Sidebar with navigation buttons', () => {
         render(<Home />)
-        const heading = screen.getByRole('heading', { level: 1 })
-        expect(heading).toBeInTheDocument()
-        expect(heading).toHaveTextContent('Super Effective')
+        expect(screen.getByText('Super Effective')).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: /Новая Заметка/i })).toBeInTheDocument()
+        expect(screen.getByText('Дашборд')).toBeInTheDocument()
+        expect(screen.getByText('Задачи')).toBeInTheDocument()
     })
 
-    it('renders the main description', () => {
+    it('renders the main Editor Header', () => {
         render(<Home />)
-        const text = screen.getByText(/Гибридное рабочее пространство/i)
-        expect(text).toBeInTheDocument()
+        expect(screen.getByText('Разработка нового интерфейса')).toBeInTheDocument()
+        expect(screen.getByText('In Progress')).toBeInTheDocument()
     })
 
-    it('renders two main buttons', () => {
+    it('renders the metadata block and action buttons', () => {
         render(<Home />)
-        const startButton = screen.getByRole('button', { name: /Начать работу/i })
-        const docsButton = screen.getByRole('button', { name: /Документация/i })
-        expect(startButton).toBeInTheDocument()
-        expect(docsButton).toBeInTheDocument()
+        expect(screen.getByText('+150 RP')).toBeInTheDocument()
+        expect(screen.getByText('Детали задачи')).toBeInTheDocument()
+        expect(screen.getByText(/В Google Календарь/i)).toBeInTheDocument()
     })
 })

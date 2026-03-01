@@ -6,5 +6,5 @@ echo.
 echo Make sure you have run your database schema in Supabase!
 echo Press Ctrl+C to stop the server.
 echo.
-
+start http://localhost:3000
 npm run dev
