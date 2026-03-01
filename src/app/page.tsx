@@ -15,6 +15,7 @@ export default function Home() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState<'notes' | 'tasks'>('notes');
+  const [activeRightTab, setActiveRightTab] = useState<'details' | 'ai'>('details');
 
   // Подключаем наш умный хук Воркспейса
   const { workspace, activeNode, setActiveNode, notes, setNotes, loadingWorkspace } = useWorkspace(session);
@@ -218,128 +219,158 @@ export default function Home() {
                 </div>
 
                 {/* Правая часть: Панель атрибутов (30%) */}
-                <div className="flex-[3] flex flex-col gap-6 overflow-y-auto pr-2 pb-8">
+                <div className="flex-[3] flex flex-col gap-4 overflow-y-auto pr-2 pb-8">
 
-                  {/* Блок метаданных */}
-                  <div className="glass-panel p-6 border-t border-l border-white/10 flex flex-col gap-4">
-                    <h3 className="text-lg font-semibold text-foreground/90 border-b border-white/10 pb-2 mb-2">Детали задачи</h3>
+                  {/* Вкладки (Tabs) */}
+                  <div className="flex bg-black/20 rounded-lg p-1 border border-white/5 flex-shrink-0">
+                    <button
+                      onClick={() => setActiveRightTab('details')}
+                      className={`flex-1 text-sm font-medium py-2 px-3 rounded-md transition-all ${activeRightTab === 'details'
+                          ? 'bg-primary/20 text-primary shadow-sm border border-primary/20'
+                          : 'text-foreground/60 hover:text-foreground hover:bg-white/5'
+                        }`}
+                    >
+                      📑 Детали
+                    </button>
+                    <button
+                      onClick={() => setActiveRightTab('ai')}
+                      className={`flex-1 text-sm font-medium py-2 px-3 rounded-md transition-all ${activeRightTab === 'ai'
+                          ? 'bg-primary/20 text-primary shadow-sm border border-primary/20'
+                          : 'text-foreground/60 hover:text-foreground hover:bg-white/5'
+                        }`}
+                    >
+                      🤖 AI Копилот
+                    </button>
+                  </div>
 
-                    <div className="flex flex-col gap-1">
-                      <span className="text-xs text-foreground/40 font-medium uppercase tracking-wider">Создано</span>
-                      <span className="text-sm text-foreground/80">
-                        {activeNode?.created_at ? new Date(activeNode.created_at).toLocaleString() : 'Неизвестно'}
-                      </span>
-                    </div>
+                  {activeRightTab === 'details' ? (
+                    <>
+                      {/* Блок метаданных */}
+                      <div className="glass-panel p-6 border-t border-l border-white/10 flex flex-col gap-4">
+                        <h3 className="text-lg font-semibold text-foreground/90 border-b border-white/10 pb-2 mb-2">Детали задачи</h3>
 
-                    <div className="flex flex-col gap-1">
-                      <span className="text-xs text-foreground/40 font-medium uppercase tracking-wider">Тип</span>
-                      <button
-                        onClick={() => updateNodeField('is_task', !activeNode?.is_task)}
-                        className="text-sm text-left flex items-center justify-between px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-md transition-colors w-full border border-white/5"
-                      >
-                        {activeNode?.is_task ? '🎯 Задача' : '📝 Заметка'}
-                        <span className="text-xs text-foreground/40">Изменить</span>
-                      </button>
-                    </div>
-
-                    {activeNode?.is_task && (
-                      <>
                         <div className="flex flex-col gap-1">
-                          <span className="text-xs text-foreground/40 font-medium uppercase tracking-wider">Дедлайн</span>
-                          <input
-                            type="date"
-                            value={activeNode?.due_date ? new Date(activeNode.due_date).toISOString().split('T')[0] : ''}
-                            onChange={(e) => updateNodeField('due_date', e.target.value ? new Date(e.target.value).toISOString() : null)}
-                            className="text-sm bg-black/40 border border-white/10 rounded-md px-2 py-1 text-foreground/80 outline-none focus:border-primary/50 w-full"
-                          />
+                          <span className="text-xs text-foreground/40 font-medium uppercase tracking-wider">Создано</span>
+                          <span className="text-sm text-foreground/80">
+                            {activeNode?.created_at ? new Date(activeNode.created_at).toLocaleString() : 'Неизвестно'}
+                          </span>
                         </div>
 
                         <div className="flex flex-col gap-1">
-                          <span className="text-xs text-foreground/40 font-medium uppercase tracking-wider">Приоритет</span>
-                          <select
-                            value={activeNode?.priority || 'medium'}
-                            onChange={(e) => updateNodeField('priority', e.target.value)}
-                            className="text-sm bg-black/40 border border-white/10 rounded-md px-2 py-1 text-foreground/80 outline-none focus:border-primary/50 capitalize w-full"
+                          <span className="text-xs text-foreground/40 font-medium uppercase tracking-wider">Тип</span>
+                          <button
+                            onClick={() => updateNodeField('is_task', !activeNode?.is_task)}
+                            className="text-sm text-left flex items-center justify-between px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-md transition-colors w-full border border-white/5"
                           >
-                            <option value="low">Low (Низкий)</option>
-                            <option value="medium">Medium (Средний)</option>
-                            <option value="high">High (Высокий)</option>
-                          </select>
+                            {activeNode?.is_task ? '🎯 Задача' : '📝 Заметка'}
+                            <span className="text-xs text-foreground/40">Изменить</span>
+                          </button>
                         </div>
 
-                        <div className="flex flex-col gap-1">
-                          <span className="text-xs text-foreground/40 font-medium uppercase tracking-wider">Награда (RP)</span>
+                        {activeNode?.is_task && (
+                          <>
+                            <div className="flex flex-col gap-1">
+                              <span className="text-xs text-foreground/40 font-medium uppercase tracking-wider">Дедлайн</span>
+                              <input
+                                type="date"
+                                value={activeNode?.due_date ? new Date(activeNode.due_date).toISOString().split('T')[0] : ''}
+                                onChange={(e) => updateNodeField('due_date', e.target.value ? new Date(e.target.value).toISOString() : null)}
+                                className="text-sm bg-black/40 border border-white/10 rounded-md px-2 py-1 text-foreground/80 outline-none focus:border-primary/50 w-full"
+                              />
+                            </div>
+
+                            <div className="flex flex-col gap-1">
+                              <span className="text-xs text-foreground/40 font-medium uppercase tracking-wider">Приоритет</span>
+                              <select
+                                value={activeNode?.priority || 'medium'}
+                                onChange={(e) => updateNodeField('priority', e.target.value)}
+                                className="text-sm bg-black/40 border border-white/10 rounded-md px-2 py-1 text-foreground/80 outline-none focus:border-primary/50 capitalize w-full"
+                              >
+                                <option value="low">Low (Низкий)</option>
+                                <option value="medium">Medium (Средний)</option>
+                                <option value="high">High (Высокий)</option>
+                              </select>
+                            </div>
+
+                            <div className="flex flex-col gap-1">
+                              <span className="text-xs text-foreground/40 font-medium uppercase tracking-wider">Награда (RP)</span>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={activeNode?.reward_points || 0}
+                                  onChange={(e) => updateNodeField('reward_points', parseInt(e.target.value) || 0)}
+                                  className="text-sm bg-black/40 border border-white/10 rounded-md px-2 py-1 text-primary font-semibold outline-none focus:border-primary/50 w-full"
+                                />
+                                <span className="text-xs font-semibold text-primary">RP</span>
+                              </div>
+                            </div>
+                          </>
+                        )}
+
+                        <div className="flex flex-col gap-1 mt-2">
+                          <span className="text-xs text-foreground/40 font-medium uppercase tracking-wider">Теги</span>
+                          <div className="flex flex-wrap gap-1.5 mb-2">
+                            {(activeNode?.tags || []).map(tag => (
+                              <span key={tag} className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-md flex items-center gap-1 border border-primary/20">
+                                {tag}
+                                <button onClick={() => handleRemoveTag(tag)} className="hover:text-red-400 ml-0.5">&times;</button>
+                              </span>
+                            ))}
+                          </div>
                           <div className="flex items-center gap-2">
                             <input
-                              type="number"
-                              min="0"
-                              value={activeNode?.reward_points || 0}
-                              onChange={(e) => updateNodeField('reward_points', parseInt(e.target.value) || 0)}
-                              className="text-sm bg-black/40 border border-white/10 rounded-md px-2 py-1 text-primary font-semibold outline-none focus:border-primary/50 w-full"
+                              type="text"
+                              list="tags-list"
+                              value={newTag}
+                              onChange={(e) => setNewTag(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleAddTag(newTag);
+                              }}
+                              placeholder="Добавить тег..."
+                              className="text-sm bg-black/40 border border-white/10 rounded-md px-2 py-1.5 text-foreground/80 outline-none focus:border-primary/50 w-full"
                             />
-                            <span className="text-xs font-semibold text-primary">RP</span>
+                            <button
+                              onClick={() => handleAddTag(newTag)}
+                              className="text-sm bg-white/5 hover:bg-white/10 border border-white/10 rounded-md px-3 py-1.5 transition-colors"
+                            >
+                              +
+                            </button>
                           </div>
+                          <datalist id="tags-list">
+                            {allTags.map(tag => (
+                              <option key={tag} value={tag} />
+                            ))}
+                          </datalist>
                         </div>
-                      </>
-                    )}
 
-                    <div className="flex flex-col gap-1 mt-2">
-                      <span className="text-xs text-foreground/40 font-medium uppercase tracking-wider">Теги</span>
-                      <div className="flex flex-wrap gap-1.5 mb-2">
-                        {(activeNode?.tags || []).map(tag => (
-                          <span key={tag} className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-md flex items-center gap-1 border border-primary/20">
-                            {tag}
-                            <button onClick={() => handleRemoveTag(tag)} className="hover:text-red-400 ml-0.5">&times;</button>
-                          </span>
-                        ))}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          list="tags-list"
-                          value={newTag}
-                          onChange={(e) => setNewTag(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleAddTag(newTag);
-                          }}
-                          placeholder="Добавить тег..."
-                          className="text-sm bg-black/40 border border-white/10 rounded-md px-2 py-1.5 text-foreground/80 outline-none focus:border-primary/50 w-full"
-                        />
-                        <button
-                          onClick={() => handleAddTag(newTag)}
-                          className="text-sm bg-white/5 hover:bg-white/10 border border-white/10 rounded-md px-3 py-1.5 transition-colors"
-                        >
-                          +
+
+                      {/* Блок действий */}
+                      <div className="glass-panel p-6 border-t border-l border-white/10 flex flex-col gap-3">
+                        <h3 className="text-lg font-semibold text-foreground/90 border-b border-white/10 pb-2 mb-2">Действия</h3>
+
+                        <button className="w-full text-left px-4 py-2.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-medium transition-colors text-sm border border-primary/20 flex items-center justify-between">
+                          В Google Календарь
+                          <span>📅</span>
+                        </button>
+
+                        <button className="w-full text-left px-4 py-2.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 font-medium transition-colors text-sm border border-blue-500/20 flex items-center justify-between">
+                          Синхронизация Google Drive
+                          <span>☁️</span>
+                        </button>
+
+                        <button className="w-full text-left px-4 py-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-foreground/80 font-medium transition-colors text-sm border border-white/5 flex items-center justify-between mt-2">
+                          Архивировать
+                          <span>📦</span>
                         </button>
                       </div>
-                      <datalist id="tags-list">
-                        {allTags.map(tag => (
-                          <option key={tag} value={tag} />
-                        ))}
-                      </datalist>
+                    </>
+                  ) : (
+                    <div className="flex-1 min-h-[400px]">
+                      <AIChat nodes={notes} />
                     </div>
-
-                  </div>
-
-                  {/* Блок действий */}
-                  <div className="glass-panel p-6 border-t border-l border-white/10 flex flex-col gap-3">
-                    <h3 className="text-lg font-semibold text-foreground/90 border-b border-white/10 pb-2 mb-2">Действия</h3>
-
-                    <button className="w-full text-left px-4 py-2.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary font-medium transition-colors text-sm border border-primary/20 flex items-center justify-between">
-                      В Google Календарь
-                      <span>📅</span>
-                    </button>
-
-                    <button className="w-full text-left px-4 py-2.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 font-medium transition-colors text-sm border border-blue-500/20 flex items-center justify-between">
-                      Синхронизация Google Drive
-                      <span>☁️</span>
-                    </button>
-
-                    <button className="w-full text-left px-4 py-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-foreground/80 font-medium transition-colors text-sm border border-white/5 flex items-center justify-between mt-2">
-                      Архивировать
-                      <span>📦</span>
-                    </button>
-                  </div>
+                  )}
 
                 </div>
               </div>
