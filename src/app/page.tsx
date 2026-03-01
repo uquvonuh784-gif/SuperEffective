@@ -98,6 +98,16 @@ export default function Home() {
                   key={activeNode.id}
                   nodeId={activeNode.id}
                   initialContent={activeNode.content?.html}
+                  onSave={(id, html) => {
+                    const updatedNotes = notes.map(note =>
+                      note.id === id ? { ...note, content: { html } } : note
+                    );
+                    setNotes(updatedNotes);
+
+                    if (activeNode.id === id) {
+                      setActiveNode({ ...activeNode, content: { html } });
+                    }
+                  }}
                 />
               ) : (
                 <div className="flex items-center justify-center p-8 text-foreground/50">Загрузка редактора...</div>

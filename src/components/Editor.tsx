@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Bold, Italic, Strikethrough, Heading1, Heading2, List, ListOrdered, Quote, Code, CheckCircle2, Loader2 } from "lucide-react";
@@ -10,33 +10,47 @@ import { supabase } from "@/lib/supabase/client";
 interface EditorProps {
     nodeId?: string;
     initialContent?: string;
+    onSave?: (nodeId: string, html: string) => void;
 }
 
-export default function Editor({ nodeId, initialContent }: EditorProps) {
+export default function Editor({ nodeId, initialContent, onSave }: EditorProps) {
     const [isSaving, setIsSaving] = useState(false);
     const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-    const debouncedSave = debounce(async (html: string) => {
-        if (!nodeId) return; // Не сохраняем, если не знаем идентификатор заметки
+    const onSaveRef = useRef(onSave);
+    useEffect(() => {
+        onSaveRef.current = onSave;
+    }, [onSave]);
 
-        setIsSaving(true);
-        try {
-            const { error } = await supabase
-                .from('nodes')
-                .update({
-                    content: { html },
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', nodeId);
+    const debouncedSave = useMemo(
+        () => debounce(async (html: string, id: string) => {
+            setIsSaving(true);
+            try {
+                const { error } = await supabase
+                    .from('nodes')
+                    .update({
+                        content: { html },
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', id);
 
-            if (error) throw error;
-            setLastSaved(new Date());
-        } catch (error) {
-            console.error("Ошибка при сохранении в Supabase:", error);
-        } finally {
-            setIsSaving(false);
-        }
-    }, 3000);
+                if (error) throw error;
+                setLastSaved(new Date());
+                onSaveRef.current?.(id, html);
+            } catch (error) {
+                console.error("Ошибка при сохранении в Supabase:", error);
+            } finally {
+                setIsSaving(false);
+            }
+        }, 3000),
+        []
+    );
+
+    useEffect(() => {
+        return () => {
+            debouncedSave.flush();
+        };
+    }, [debouncedSave]);
 
     const editor = useEditor({
         immediatelyRender: false,
@@ -67,7 +81,9 @@ export default function Editor({ nodeId, initialContent }: EditorProps) {
             },
         },
         onUpdate: ({ editor }) => {
-            debouncedSave(editor.getHTML());
+            if (nodeId) {
+                debouncedSave(editor.getHTML(), nodeId);
+            }
         },
     });
 
