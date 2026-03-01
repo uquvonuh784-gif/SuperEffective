@@ -1,36 +1,27 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Super Effective - Task Tracker & AI
 
-## Getting Started
+Гибридное рабочее пространство (Заметки + Задачи) с системой геймификации и проактивным AI. Заменяет собой связку Notion + Todoist + Google Calendar/Drive.
 
-First, run the development server:
+## Текущий Статус (Этап 1 и 2)
+На данный момент реализовано:
+1. **Фундамент проекта**: Настроен Next.js (App Router, Tailwind CSS, TypeScript).
+2. **База данных (Supabase)**: Спроектирована и описана в `database/schema.sql` (Unified Node Pattern, связи, Role-Based Access Control, система геймификации).
+3. **UI/UX (Vanilla CSS Glassmorphism)**: Подготовлена стартовая страница и базовые CSS-переменные для премиального внешнего вида в стиле "темного стекла" (`app/globals.css`).
+4. **Тестирование**: Настроен и подключен фреймворк `vitest` + `testing-library`, написаны первые работающие тесты для главной страницы (`npm run test`).
+5. **Агенты и Навыки**: Разработаны AI-навыки (Skills) для Git (`.agents/skills/git`), UI/UX, разработки и планирования архитектуры.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Документация продукта
+- [Product Requirements Document (PRD)](task_tracker_prd.md)
+- [Архитектурный План](architecture_plan.md)
+- [Бизнес-Логика](business_logic.md)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Стэк Технологий
+- **Фронтенд:** Next.js, React, Tailwind CSS (для layout), Vanilla CSS (для UI эффектов/Glassmorphism).
+- **Редактор:** Tiptap & lucide-react (установлены, готовы к интеграции).
+- **Бэкенд:** Supabase (PostgreSQL, Auth, Realtime).
+- **Тестирование:** Vitest + Testing Library.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Запуск
+1. Убедитесь, что выполнен SQL-скрипт `database/schema.sql` в вашем проекте Supabase.
+2. Пропишите ключи в `.env.local` (см. `.env.local.example`).
+3. Для старта используйте `start.bat` (кликом на Windows) или `npm run dev` в терминале.
