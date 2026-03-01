@@ -21,6 +21,15 @@ const COLUMNS = [
 ];
 
 export default function KanbanBoard({ workspaceId, nodes, onNotesChange, onSelectTask }: KanbanBoardProps) {
+    const getPriorityColor = (priority: string) => {
+        switch (priority) {
+            case 'high': return 'text-red-400 bg-red-500/10 border-red-500/20';
+            case 'medium': return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
+            case 'low': return 'text-green-400 bg-green-500/10 border-green-500/20';
+            default: return 'text-foreground/70 bg-white/5 border-white/10';
+        }
+    };
+
     const tasks = nodes.filter(n => n.is_task);
 
     // По-умолчанию скрываем Паузу и Архив
@@ -58,6 +67,23 @@ export default function KanbanBoard({ workspaceId, nodes, onNotesChange, onSelec
         if (newNode) {
             onNotesChange([newNode, ...nodes]);
         }
+    };
+
+    const handleDeleteTask = async (taskId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!confirm("Удалить задачу?")) return;
+
+        const { error } = await supabase
+            .from('nodes')
+            .delete()
+            .eq('id', taskId);
+
+        if (error) {
+            console.error("Ошибка при удалении задачи:", error);
+            return;
+        }
+
+        onNotesChange(nodes.filter(n => n.id !== taskId));
     };
 
     const handleUpdateStatus = async (task: NodeItem, newStatus: string) => {
@@ -145,14 +171,28 @@ export default function KanbanBoard({ workspaceId, nodes, onNotesChange, onSelec
                                                 }`}
                                             onClick={() => onSelectTask(task)}
                                         >
-                                            <h4 className="font-medium text-foreground mb-2 group-hover:text-primary transition-colors">
-                                                {task.title || "Без названия"}
-                                            </h4>
+                                            <div className="flex items-start justify-between mb-2 gap-2">
+                                                <h4 className="font-medium text-foreground group-hover:text-primary transition-colors leading-tight">
+                                                    {task.title || "Без названия"}
+                                                </h4>
+                                                <button
+                                                    onClick={(e) => handleDeleteTask(task.id, e)}
+                                                    className="opacity-0 group-hover:opacity-100 text-red-400/70 hover:text-red-400 transition-opacity p-1 hover:bg-red-400/10 rounded flex-shrink-0"
+                                                    title="Удалить задачу"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                                                </button>
+                                            </div>
 
                                             <div className="flex items-center justify-between mt-4">
-                                                <span className="text-xs font-semibold text-primary px-2 py-1 bg-primary/10 rounded-md">
-                                                    +{task.reward_points || 0} RP
-                                                </span>
+                                                <div className="flex gap-2 items-center">
+                                                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border capitalize ${getPriorityColor(task.priority)}`}>
+                                                        {task.priority || 'medium'}
+                                                    </span>
+                                                    <span className="text-xs font-semibold text-primary px-1.5 py-0.5 bg-primary/10 rounded border border-primary/20">
+                                                        +{task.reward_points || 0} RP
+                                                    </span>
+                                                </div>
 
                                                 <div className="flex gap-1" onClick={e => e.stopPropagation()}>
                                                     <select
