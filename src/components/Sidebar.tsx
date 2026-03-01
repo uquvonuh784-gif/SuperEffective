@@ -6,11 +6,13 @@ interface SidebarProps {
     workspaceId?: string;
     notes?: NodeItem[];
     activeNode?: NodeItem | null;
+    activeView?: 'notes' | 'tasks';
     onSelectNode?: (node: NodeItem) => void;
     onNotesChange?: (notes: NodeItem[]) => void;
+    onViewChange?: (view: 'notes' | 'tasks') => void;
 }
 
-export default function Sidebar({ workspaceId, notes = [], activeNode, onSelectNode, onNotesChange }: SidebarProps) {
+export default function Sidebar({ workspaceId, notes = [], activeNode, activeView = 'notes', onSelectNode, onNotesChange, onViewChange }: SidebarProps) {
     const handleCreateNote = async () => {
         if (!workspaceId || !onNotesChange || !onSelectNode) return;
 
@@ -63,8 +65,18 @@ export default function Sidebar({ workspaceId, notes = [], activeNode, onSelectN
                 {/* Навигация */}
                 <nav className="space-y-1 mb-6 flex-shrink-0">
                     <NavItem icon={<LayoutDashboard size={18} />} label="Дашборд" />
-                    <NavItem icon={<FileText size={18} />} label="Заметки" active />
-                    <NavItem icon={<Calendar size={18} />} label="Задачи" />
+                    <NavItem
+                        icon={<FileText size={18} />}
+                        label="Заметки"
+                        active={activeView === 'notes'}
+                        onClick={() => onViewChange?.('notes')}
+                    />
+                    <NavItem
+                        icon={<Calendar size={18} />}
+                        label="Задачи"
+                        active={activeView === 'tasks'}
+                        onClick={() => onViewChange?.('tasks')}
+                    />
                 </nav>
 
                 {/* Список заметок */}
@@ -108,10 +120,14 @@ export default function Sidebar({ workspaceId, notes = [], activeNode, onSelectN
     );
 }
 
-function NavItem({ icon, label, active = false }: { icon: React.ReactNode, label: string, active?: boolean }) {
+function NavItem({ icon, label, active = false, onClick }: { icon: React.ReactNode, label: string, active?: boolean, onClick?: () => void }) {
     return (
         <a
             href="#"
+            onClick={(e) => {
+                e.preventDefault();
+                onClick?.();
+            }}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm font-medium ${active
                 ? "bg-primary/10 text-primary"
                 : "text-foreground/60 hover:text-foreground/90 hover:bg-white/5"
