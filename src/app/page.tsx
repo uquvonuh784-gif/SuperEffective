@@ -9,6 +9,7 @@ import Auth from "@/components/Auth";
 import { useWorkspace, NodeItem } from "@/hooks/useWorkspace";
 
 import KanbanBoard from "@/components/KanbanBoard";
+import AIChat from "@/components/AIChat";
 
 export default function Home() {
   const [session, setSession] = useState<Session | null>(null);
@@ -122,16 +123,21 @@ export default function Home() {
                   Выйти из аккаунта
                 </button>
               </header>
-              <div className="flex-1 overflow-hidden min-h-0">
-                <KanbanBoard
-                  workspaceId={workspace?.id}
-                  nodes={notes}
-                  onNotesChange={setNotes}
-                  onSelectTask={(task) => {
-                    setActiveNode(task);
-                    setActiveView('notes'); // Переводим на редактор для открытия задачи
-                  }}
-                />
+              <div className="flex-1 overflow-hidden min-h-0 flex gap-6">
+                <div className="flex-1 overflow-x-auto min-w-0 pr-2">
+                  <KanbanBoard
+                    workspaceId={workspace?.id}
+                    nodes={notes}
+                    onNotesChange={setNotes}
+                    onSelectTask={(task) => {
+                      setActiveNode(task);
+                      setActiveView('notes'); // Переводим на редактор для открытия задачи
+                    }}
+                  />
+                </div>
+                <div className="w-[380px] flex-shrink-0 h-full">
+                  <AIChat nodes={notes} />
+                </div>
               </div>
             </div>
           ) : (
