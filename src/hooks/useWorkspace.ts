@@ -20,6 +20,7 @@ export interface NodeItem {
     created_at: string;
     updated_at: string;
     due_date: string | null;
+    tags?: string[];
 }
 
 export function useWorkspace(session: Session | null) {

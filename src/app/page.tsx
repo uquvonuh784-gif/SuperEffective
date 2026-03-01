@@ -18,7 +18,7 @@ export default function Home() {
   // Подключаем наш умный хук Воркспейса
   const { workspace, activeNode, setActiveNode, notes, setNotes, loadingWorkspace } = useWorkspace(session);
 
-  const updateNodeField = async (field: keyof NodeItem, value: string | boolean | number | null) => {
+  const updateNodeField = async (field: keyof NodeItem, value: string | boolean | number | null | string[]) => {
     if (!activeNode) return;
 
     // Optimistic UI update
@@ -32,6 +32,25 @@ export default function Home() {
       .eq('id', activeNode.id);
 
     if (error) console.error(`Ошибка при обновлении ${field}:`, error);
+  };
+
+  const [newTag, setNewTag] = useState('');
+  const allTags = Array.from(new Set(notes.flatMap(n => n.tags || [])));
+
+  const handleAddTag = async (tag: string) => {
+    const trimmed = tag.trim();
+    if (!trimmed || !activeNode) return;
+    const currentTags = activeNode.tags || [];
+    if (currentTags.includes(trimmed)) return;
+
+    await updateNodeField('tags', [...currentTags, trimmed]);
+    setNewTag('');
+  };
+
+  const handleRemoveTag = async (tagToRemove: string) => {
+    if (!activeNode) return;
+    const currentTags = activeNode.tags || [];
+    await updateNodeField('tags', currentTags.filter(t => t !== tagToRemove));
   };
 
   // Проверка сессии при загрузке
@@ -257,6 +276,43 @@ export default function Home() {
                         </div>
                       </>
                     )}
+
+                    <div className="flex flex-col gap-1 mt-2">
+                      <span className="text-xs text-foreground/40 font-medium uppercase tracking-wider">Теги</span>
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {(activeNode?.tags || []).map(tag => (
+                          <span key={tag} className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-md flex items-center gap-1 border border-primary/20">
+                            {tag}
+                            <button onClick={() => handleRemoveTag(tag)} className="hover:text-red-400 ml-0.5">&times;</button>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          list="tags-list"
+                          value={newTag}
+                          onChange={(e) => setNewTag(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleAddTag(newTag);
+                          }}
+                          placeholder="Добавить тег..."
+                          className="text-sm bg-black/40 border border-white/10 rounded-md px-2 py-1.5 text-foreground/80 outline-none focus:border-primary/50 w-full"
+                        />
+                        <button
+                          onClick={() => handleAddTag(newTag)}
+                          className="text-sm bg-white/5 hover:bg-white/10 border border-white/10 rounded-md px-3 py-1.5 transition-colors"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <datalist id="tags-list">
+                        {allTags.map(tag => (
+                          <option key={tag} value={tag} />
+                        ))}
+                      </datalist>
+                    </div>
+
                   </div>
 
                   {/* Блок действий */}
